@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPad Style Launcher</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div class="search-bar-container">
+        <div class="search-bar">
+            🔍 <input type="text" id="app-search" placeholder="Search">
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="container" id="app-grid">
+            <!-- Rendered by JS -->
+        </div>
+        
+        <div class="toolbar" id="main-toolbar">
+            <button id="toolbar-toggle" class="toggle-btn">
+                <div class="toggle-icon">
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+            <div class="toolbar-buttons">
+                <!-- Window Controls (New) -->
+                <div class="window-controls-row" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; margin-top: 8px;">
+                    <button id="win-close" class="ctrl-btn close-bg" title="Close">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9.5 2.5L2.5 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M2.5 2.5L9.5 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button id="win-min" class="ctrl-btn min-bg" title="Minimize">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2.5 6H9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <button id="settings-btn" class="ios-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Settings</span>
+                </button>
+                <button id="edit-btn" class="ios-btn">
+                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                     <span>Edit Mode</span>
+                </button>
+                <button id="add-btn" class="ios-btn hidden">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                    <span>Add App</span>
+                </button>
+                <button id="add-folder-btn" class="ios-btn hidden">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+                    <span>Add Folder</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar Backdrop -->
+    <div id="toolbar-backdrop" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 499; backdrop-filter: blur(3px); background: rgba(0,0,0,0.1);"></div>
+
+    <!-- Settings Overlay -->
+    <div id="settings-overlay" class="overlay hidden">
+        <div class="overlay-content settings-content">
+            <h2 class="folder-title">Settings</h2>
+            
+            <div class="setting-group">
+                <label>Icon Size (px)</label>
+                <input type="range" id="icon-size-range" min="20" max="100" value="60">
+                <span id="icon-size-value">60px</span>
+            </div>
+
+            <div class="setting-group">
+                <label>App Spacing (px)</label>
+                <input type="range" id="app-gap-range" min="0" max="100" value="30">
+                <span id="app-gap-value">30px</span>
+            </div>
+
+            <div class="setting-group">
+                <label>Folder Inner Spacing (px)</label>
+                <input type="range" id="folder-gap-range" min="0" max="100" value="20">
+                <span id="folder-gap-value">20px</span>
+            </div>
+
+            <div class="setting-group">
+                <label style="display: flex; align-items: center; justify-content: space-between;">
+                    Custom Window Padding
+                    <input type="checkbox" id="custom-padding-check" style="width: auto;">
+                </label>
+            </div>
+            
+            <div class="setting-group" id="padding-input-group" class="hidden">
+                 <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                     <label style="flex: 1;">Vertical (px)</label>
+                     <label style="flex: 1;">Horizontal (px)</label>
+                 </div>
+                 <div style="display: flex; gap: 10px;">
+                     <input type="number" id="window-padding-input" value="15" style="flex: 1;">
+                     <input type="number" id="window-padding-h-input" value="20" style="flex: 1;">
+                 </div>
+            </div>
+
+            <div class="setting-group">
+                <label>Window Width</label>
+                <input type="number" id="win-width" value="1200">
+            </div>
+
+            <div class="setting-group">
+                <label>Window Height</label>
+                <input type="number" id="win-height" value="800">
+            </div>
+
+            <div class="setting-group">
+                <label style="display: flex; align-items: center; justify-content: space-between;">
+                    Show Search Bar
+                    <input type="checkbox" id="show-search" checked style="width: auto;">
+                </label>
+            </div>
+
+            <div class="setting-group">
+                <label style="display: flex; align-items: center; justify-content: space-between;">
+                    Show Scroll Bar
+                    <input type="checkbox" id="show-scroll" checked style="width: auto;">
+                </label>
+            </div>
+
+            <div class="setting-group">
+                <label style="display: flex; align-items: center; justify-content: space-between;">
+                    Show App Names
+                    <input type="checkbox" id="show-app-names" checked style="width: auto;">
+                </label>
+            </div>
+
+            <div class="setting-group">
+                <label style="display: flex; align-items: center; justify-content: space-between;">
+                    Show Folder Names
+                    <input type="checkbox" id="show-folder-names" checked style="width: auto;">
+                </label>
+            </div>
+
+            <div class="setting-group">
+                <label style="display: flex; align-items: center; justify-content: space-between;">
+                    One Row Mode
+                    <input type="checkbox" id="one-row-mode" style="width: auto;">
+                </label>
+            </div>
+
+            <div class="setting-group">
+                <label style="display: flex; align-items: center; justify-content: space-between;">
+                    Lock Window Size
+                    <input type="checkbox" id="lock-window" style="width: auto;">
+                </label>
+            </div>
+
+            <div class="settings-actions">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="bg-url" placeholder="https://... or C:\..." style="flex-grow: 1;">
+                    <button id="bg-browse-btn" class="ios-btn">Browse</button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label>Background Position (Crop)</label>
+                <select id="bg-position" style="padding: 8px; border-radius: 8px; border: 1px solid #ccc; width: 100%;">
+                    <option value="center center">Center</option>
+                    <option value="top center">Top</option>
+                    <option value="bottom center">Bottom</option>
+                    <option value="center left">Left</option>
+                    <option value="center right">Right</option>
+                </select>
+            </div>
+
+            <div style="flex-grow: 1;"></div>
+
+            <div class="settings-actions">
+                <button id="save-settings" class="ios-btn primary">Save</button>
+                <button id="reset-settings" class="ios-btn" style="background-color: #ff3b30; color: white; margin-right: auto;">Reset</button>
+                <button id="close-settings" class="ios-btn">Cancel</button>
+            </div>
+        </div>
+        <div class="overlay-backdrop"></div>
+    </div>
+
+    <!-- Folder Overlay (Initially hidden) -->
+    <div id="folder-overlay" class="overlay hidden">
+        <div class="overlay-content folder-content-wrapper" id="folder-content-area">
+            <h2 id="folder-title" class="folder-title" contenteditable="true">Folder Name</h2>
+            <div id="folder-grid" class="folder-grid">
+                <!-- Folder contents rendered here -->
+            </div>
+            <div class="folder-actions" style="display: none;"> <!-- Hidden since clicking outside closes -->
+                <button id="close-overlay" class="close-btn ios-btn">Close</button>
+            </div>
+        </div>
+        <div class="overlay-backdrop"></div>
+    </div>
+
+    <!-- Target Selection Overlay -->
+    <div id="target-selection-overlay" class="overlay hidden">
+        <!-- Horizontal scrolling container -->
+        <div class="overlay-content" style="width: 100%; max-width: 90%; display: flex; align-items: center; justify-content: center; padding: 0; background: transparent; backdrop-filter: none; box-shadow: none; border: none;">
+            <div id="target-list" style="display: flex; flex-direction: row; gap: 15px; overflow-x: auto; padding: 10px; align-items: center; scrollbar-width: none; max-width: 100%; width: 100%; justify-content: flex-start;">
+                <!-- Targets will be injected here as horizontal icons -->
+            </div>
+            <!-- Cancel implicitly by clicking backdrop -->
+        </div>
+        <div class="overlay-backdrop"></div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
