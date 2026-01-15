@@ -8,18 +8,18 @@
     "windowWidth": 650,
     "windowHeight": 135,
     "startupPosition": "bottom-left",
-    "backgroundImage": "C:\\Users\\with1\\Documents\\ヰ世界情緒　背景画像\\ヰ世界情緒_(ANIMAlll).png",
+    "backgroundImage": "assets/images/settings-bg-03.png",
     "backgroundPosition": "center center",
     "showSearch": false,
     "showScroll": false,
     "showDesktopNames": true,
-    "showFolderContentNames": false,
+    "showFolderContentNames": true,
     "oneRowMode": true,
     "invertScrollDirection": false,
     "windowLocked": false,
-    "compactMenu": true,
+    "compactMenu": false,
     "enableFolderRename": true,
     "enableAppRename": false,
     "desktopNameColor": "#ffffff",
-    "desktopNameBold": true
+    "desktopNameBold": false
 }

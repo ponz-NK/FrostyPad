@@ -1,0 +1,1667 @@
+body {
+    margin: 0;
+    /* Default padding logic fallback if var not set (though JS sets it) */
+    --default-padding: calc(var(--icon-size) * 0.25);
+    /* Use variable for vertical and horizontal padding */
+    padding: var(--window-padding-v, var(--default-padding)) var(--window-padding-h, 20px);
+    background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=3270&auto=format&fit=crop') no-repeat center center fixed;
+    background-size: cover;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+    user-select: none;
+    --icon-size: 60px;
+    --app-gap: 30px;
+    /* Window Drag Logic */
+    -webkit-app-region: drag;
+    box-sizing: border-box; 
+    height: 100vh; /* Fill window */
+}
+
+/* Global Box Sizing */
+* {
+    box-sizing: border-box;
+}
+
+/* Allow interaction with interactive elements */
+button, input, select, .app-item, .folder-grid, .toolbar, .overlay-content, .window-controls-row,
+#toolbar-backdrop, .overlay, .overlay-backdrop {
+    -webkit-app-region: no-drag;
+}
+/* Be careful with container padding being draggable vs app item not */
+
+.search-bar-container {
+    display: flex;
+    justify-content: center;
+    position: absolute; /* Float above content */
+    top: 15px; /* Slightly higher */
+    left: 0;
+    width: 100%;
+    z-index: 10;
+}
+
+.search-bar {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    width: 300px;
+}
+
+.search-bar input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    margin-left: 10px;
+    width: 100%;
+    outline: none;
+}
+.search-bar input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--icon-size) + 40px), 1fr));
+    gap: var(--app-gap, 30px);
+    padding: 10px 40px; 
+    padding-top: 70px; /* Reduced from 80px to bring apps closer to search bar */
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow-y: auto;
+    height: 100vh; /* Fill full height */
+}
+
+/* If search bar is hidden via JS class on body */
+body.no-search .container {
+    padding-top: 20px;
+}
+
+/* App Icon Styling */
+.app-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+    width: calc(var(--icon-size) + 20px); /* Constrain width */
+    margin: 0 auto;
+    position: relative; /* Ensure stacking context */
+    /* Ensure padding doesn't affect hit area weirdly */
+}
+
+/* Compact Mode for Folders: Removes extra width around items */
+.folder-grid.compact .app-item {
+    width: var(--icon-size);
+}
+/* Ensure names handles overflow gracefully in compact mode */
+.folder-grid.compact .app-name {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+/* Ensure icons have minimal margin in compact mode */
+.folder-grid.compact .app-icon {
+    margin-bottom: 4px; /* Slightly tighter */
+}
+
+.app-item:active {
+    transform: scale(0.95);
+    filter: brightness(0.8);
+}
+
+.app-icon {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    /* Transparent light gray background */
+    background-color: rgba(255, 255, 255, 0.15); 
+    backdrop-filter: blur(5px);
+    border-radius: 14px; 
+    /* Remove box shadow if you want purely icon */
+    /* box-shadow: 0 4px 10px rgba(0,0,0,0.3); */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(var(--icon-size) * 0.4);
+    margin-bottom: 8px;
+    position: relative;
+    overflow: visible; 
+}
+
+/* App Creation Animation */
+@keyframes appPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0) translateY(50px); /* Start invisible and from below */
+        filter: blur(10px);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1.15) translateY(-10px); /* Overshoot up */
+        filter: blur(0);
+    }
+    80% {
+        transform: scale(0.95) translateY(5px); /* Rebound down */
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.app-item.new-item {
+    animation: appPopIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+    transform-origin: center bottom;
+    z-index: 100; /* Ensure on top */
+}
+
+/* Wiggle Animation for Edit Mode */
+@keyframes wiggle {
+    0% { transform: rotate(0deg) translate(0, 0); }
+    25% { transform: rotate(-1.5deg) translate(-1px, 0); }
+    50% { transform: rotate(0deg) translate(0, -1px); }
+    75% { transform: rotate(1.5deg) translate(1px, 0); }
+    100% { transform: rotate(0deg) translate(0, 0); }
+}
+
+.edit-mode .app-item {
+    animation: wiggle 0.4s ease-in-out infinite;
+    transform-origin: center center;
+}
+
+/* Add randomness to staggering for organic feel */
+.edit-mode .app-item:nth-child(2n) { animation-duration: 0.38s; animation-delay: -0.1s; }
+.edit-mode .app-item:nth-child(3n) { animation-duration: 0.42s; animation-delay: -0.2s; }
+.edit-mode .app-item:nth-child(5n) { animation-duration: 0.45s; animation-delay: -0.15s; }
+.edit-mode .app-item:nth-child(7n) { animation-duration: 0.36s; animation-delay: -0.25s; }
+
+/* Menu Button Entry Animation */
+@keyframes btnScaleIn {
+    0% { 
+        opacity: 0; 
+        transform: translateY(-8px) scale(0.9); 
+        max-height: 0;
+        margin-top: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        border-width: 0;
+    }
+    50% {
+        opacity: 1;
+        max-height: 50px; /* Approx button height */
+        padding-top: 10px;
+        padding-bottom: 10px;
+        border-width: 1px;
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateY(0) scale(1);
+        max-height: 60px;
+        margin-top: 0;
+    }
+}
+
+.ios-btn.entering {
+    animation: btnScaleIn 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transform-origin: top center;
+    overflow: hidden; /* Needed for height anim */
+}
+
+.no-scroll ::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scroll .container {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Hide Labels - Location Based */
+body.hide-desktop-names .container .app-name {
+    display: none !important;
+}
+body.hide-desktop-names .container .app-icon {
+    margin-bottom: 0 !important;
+}
+
+body.hide-folder-content-names .folder-grid .app-name {
+    display: none !important;
+}
+body.hide-folder-content-names .folder-grid .app-icon {
+    margin-bottom: 0 !important;
+}
+
+/* One Row Mode */
+.one-row-mode .content-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    overflow: visible; /* Ensure toolbar popup isn't clipped */
+}
+
+.one-row-mode .container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* Top/Bottom padding using the variable */
+    padding: var(--window-padding-v, var(--default-padding)) 30px var(--window-padding-v, var(--default-padding)) 20px; 
+    align-items: center;
+    height: 100%; /* Fill body height */
+    
+    /* Min height logic dependent on JS constraints mainly, but CSS flex handles content */
+    min-height: 0; 
+    
+    flex-grow: 1;
+    gap: var(--app-gap, 30px);
+    max-width: none;
+    margin: 0;
+}
+
+.one-row-mode .app-item {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.one-row-mode .toolbar {
+    position: fixed;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    right: 20px;    
+    margin: 0;      
+    flex-shrink: 0;
+    z-index: 600; 
+}
+
+.one-row-mode .toolbar-buttons {
+    position: absolute;
+    bottom: auto;
+    top: 50%;
+    right: 100%; /* To the left */
+    
+    /* Animation initial state */
+    transform: translateY(-50%) translateX(15px) scale(0.9);
+    transform-origin: center right;
+    
+    padding-bottom: 6px; /* Reset padding from generic */
+    margin-bottom: 0; /* Reset margin */
+    margin-right: 12px; /* Gap */
+    
+    /* Horizontal Layout */
+    flex-direction: row; 
+    align-items: center;
+    width: auto;
+}
+
+.one-row-mode .toolbar.open .toolbar-buttons {
+    transform: translateY(-50%) translateX(0) scale(1);
+}
+
+.one-row-mode .ios-btn {
+    width: auto;
+    white-space: nowrap;
+}
+
+
+
+.delete-badge {
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    width: 20px;
+    height: 20px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 1px solid white;
+}
+
+.delete-badge:hover {
+    background-color: rgba(255, 0, 0, 0.8);
+}
+
+.toolbar {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 0; /* Managed by margins */
+    z-index: 3000;
+    flex-direction: column-reverse; /* Stack upwards */
+    align-items: flex-end;
+}
+
+.toolbar-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    
+    /* Modern Glass Menu */
+    background: rgba(250, 250, 250, 0.75);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    padding: 6px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    
+    /* Animation State */
+    margin-bottom: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.9) translateY(10px);
+    transform-origin: bottom right;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toolbar.open .toolbar-buttons {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Staggered animation for menu items */
+.toolbar-buttons .ios-btn {
+    opacity: 0;
+    transform: translateX(10px);
+    transition: all 0.3s ease;
+}
+
+.toolbar.open .toolbar-buttons .ios-btn {
+    opacity: 1;
+    transform: translateX(0);
+}
+/* Stagger delays */
+.toolbar.open .toolbar-buttons .ios-btn:nth-child(2) { transition-delay: 0.05s; }
+.toolbar.open .toolbar-buttons .ios-btn:nth-child(3) { transition-delay: 0.1s; }
+.toolbar.open .toolbar-buttons .ios-btn:nth-child(4) { transition-delay: 0.15s; }
+.toolbar.open .toolbar-buttons .ios-btn:nth-child(5) { transition-delay: 0.2s; }
+
+
+.toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: saturate(180%) blur(15px);
+    -webkit-backdrop-filter: saturate(180%) blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #333; /* Replaced text color with icon styling */
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    /* Ensure no text selection logic interferes */
+    user-select: none;
+}
+
+.toggle-icon {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.toggle-icon span {
+    position: absolute;
+    background-color: #333;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+/* Horizontal line */
+.toggle-icon span:nth-child(1) {
+    width: 20px;
+    height: 2px;
+    transform: rotate(0deg);
+}
+
+/* Vertical line */
+.toggle-icon span:nth-child(2) {
+    width: 2px;
+    height: 20px;
+    transform: rotate(0deg);
+}
+
+.toolbar.open .toggle-icon span:nth-child(1) {
+    transform: rotate(135deg);
+    background-color: #ff3b30; /* Turns red when open */
+}
+
+.toolbar.open .toggle-icon span:nth-child(2) {
+    transform: rotate(135deg);
+    background-color: #ff3b30;
+}
+
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* Compact Menu Mode Styles */
+.toolbar.compact-mode:not(.open) .toggle-btn {
+    transform: scale(0.35);
+    opacity: 0.3;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: none;
+    border: none;
+}
+
+.toolbar.compact-mode:not(.open) .toggle-btn:not(:hover) .toggle-icon {
+    opacity: 0;
+}
+
+.toolbar.compact-mode:not(.open) .toggle-btn:hover {
+    transform: scale(1.05);
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.toolbar.compact-mode:not(.open) .toggle-btn:hover .toggle-icon {
+    opacity: 1;
+}
+
+
+.toolbar.open .toggle-btn {
+    /* No rotation on button itself, only inner icon */
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.ios-btn {
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Slightly adjusted border */
+    padding: 10px 14px;
+    border-radius: 12px;
+    color: #1a1a1a;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: none;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smooth ease */
+    width: 160px; /* Slight increase for icons */
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Space between icon and text */
+}
+
+.ios-btn svg {
+    opacity: 0.7;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+}
+
+/* Enhanced Hover Feedback */
+.ios-btn:hover {
+    background: rgba(0, 0, 0, 0.25); /* Significantly darker from 0.12 */
+    transform: translateX(6px); 
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Add shadow for lift */
+}
+
+.ios-btn:hover svg {
+    opacity: 1; 
+    color: #007aff; /* Add accent color on hover (iOS Blue) */
+}
+
+/* Enhanced Active State */
+.ios-btn:active {
+    background: rgba(0, 0, 0, 0.18);
+    transform: scale(0.97) translateX(6px); /* Keep shift, shrink slightly more */
+    transition-duration: 0.1s; /* Snappier on click */
+}
+
+
+.ctrl-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    position: relative; /* ツールチップの位置基準用 */
+    transition: transform 0.2s, filter 0.2s, background-color 0.2s;
+}
+
+/* ホバー時に灰色になるのを防ぎ、元の色を維持しつつ明度を下げる */
+/* 詳細度を上げて汎用の button:hover スタイルを上書きします */
+.ctrl-btn.close-bg:hover {
+    background-color: #ff5f56 !important; /* 元の赤色を維持 */
+    filter: brightness(0.85); /* 少し暗くしてホバー感を出す */
+    transform: scale(1.1);
+}
+
+.ctrl-btn.min-bg:hover {
+    background-color: #ffbd2e !important; /* 元の黄色を維持 */
+    filter: brightness(0.90);
+    transform: scale(1.1);
+}
+
+.ctrl-btn.max-bg:hover {
+    background-color: #27c93f !important;
+    filter: brightness(0.90);
+    transform: scale(1.1);
+}
+
+/* ツールチップ (テキスト部分) */
+.ctrl-btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    
+    /* ボタンの左側に配置 */
+    top: -5px;
+    right: 40px; 
+    
+    background: rgba(50, 50, 50, 0.85);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+    
+    /* Glassmorphism UI */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.1);
+
+    /* アニメーション初期状態 */
+    opacity: 0;
+    transform: translateX(10px) scale(0.9);
+    transform-origin: right center;
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    transition-delay: 0s;
+    z-index: 1000;
+}
+
+/* 三角形 (矢印) は削除 */
+.ctrl-btn::before {
+    display: none;
+}
+
+/* ホバー時のツールチップ表示 (0.5秒待機) */
+.ctrl-btn:hover::after {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    transition-delay: 0.5s;
+}
+
+.close-bg {
+    background-color: #ff5f56;
+}
+.min-bg {
+    background-color: #ffbd2e;
+}
+.max-bg {
+    background-color: #27c93f;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.app-name {
+    color: var(--desktop-text-color, white);
+    font-size: 12px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    text-align: center;
+    font-weight: var(--desktop-font-weight, normal);
+    /* Ensure user input works */
+    min-width: 50px;
+    min-height: 15px;
+    outline: none;
+}
+.app-name.editable {
+    cursor: text;
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+}
+
+/* Folder Content Override */
+.folder-grid .app-name {
+    color: #333333;
+    text-shadow: none; 
+    font-weight: normal;
+}
+
+/* Folder Icon Specifics */
+.folder-icon {
+    /* Glassmorphism for Folder Icons */
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 4px;
+    padding: 8px;
+    box-sizing: border-box;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.mini-icon {
+    background-color: white;
+    border-radius: 2px;
+    width: 100%;
+    height: 100%;
+}
+
+/* Overlay Styling */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out; /* Faster and smoother */
+}
+
+.overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.overlay-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Darker, no blur for performance */
+}
+
+.overlay-content {
+    /* Glassmorphism: Transparent background */
+    background: rgba(255, 255, 255, 0.2); 
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 20px; /* Reduced padding */
+    /* Flexible width based on content but capped */
+    width: auto;
+    min-width: 0; /* Allow shrinking to content */
+    max-width: 80%;
+    /* Default max-height */
+    max-height: 80vh; 
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    transform: scale(0.9);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1001;
+}
+
+/* Ensure folder grid doesn't have extra padding causing whitespace */
+.folder-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--folder-gap, 20px);
+    width: 100%;
+    padding: 0; /* Remove internal padding */
+    margin: 0;
+}
+
+/* Optimize for small Vertical Space (One Row Mode mainly) */
+@media (max-height: 500px) {
+    .overlay-content {
+        /* Minimal margins: 10px total (5px top/5px bottom) to maximize space */
+        max-height: calc(100% - 10px); 
+        margin: 0; 
+        
+        /* Reduced Inner Padding to 10px vertical */
+        padding: 10px 25px; 
+        border-radius: 14px;
+        
+        /* Center content vertically to equalize top/bottom visual spacing */
+        justify-content: center;
+    }
+    .folder-grid {
+        padding: 0;
+        margin: 0;
+        gap: 10px !important; 
+    }
+    /* Customize scrollbar to be less obtrusive */
+    .overlay-content::-webkit-scrollbar {
+        width: 4px;
+    }
+    .folder-title {
+        display: none !important; 
+    }
+    
+    /* Settings Content Specific Fixes for Small Screens */
+    .settings-content {
+        justify-content: flex-start !important; /* Start from top so scrolling works */
+        padding-top: 10px !important;
+    }
+    /* Show title in settings even if small? or maybe hide it to save space?
+       User said "Settings top is cut off". Usually title is at top. 
+       If we hide title, we get more space.
+       But let's keep it visible if possible, or hide it if requested. 
+       The user complained about "top part cannot be viewed". 
+       flex-start should fix the scrolling/viewing issue.
+    */
+    .settings-content .folder-title {
+        display: block !important; /* Keep settings title visible or user gets lost? */
+        margin-bottom: 10px; /* Reduce margin */
+        font-size: 16px;
+    }
+}
+
+.folder-content-wrapper {
+    align-items: center;
+}
+
+.folder-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.overlay.visible .overlay-content {
+    transform: scale(1);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+}
+
+.overlay-content.scale-down {
+    transform: scale(0.7) !important;
+    opacity: 0.5 !important;
+}
+
+.settings-content {
+    background: #f5f5f7;
+    width: 400px;
+}
+
+.setting-group {
+    width: 100%;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.setting-group label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.setting-group input {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.ios-btn.primary {
+    background-color: #007aff;
+    color: white;
+}
+
+.folder-title {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-weight: 500;
+    display: none; /* Hidden as requested */
+}
+
+/* Dynamic Grid will set columns inline */
+.folder-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Center items for a cleaner look */
+    gap: var(--folder-gap, 20px);
+    width: 100%;
+    padding: 20px;
+}
+
+.folder-grid .app-item {
+    margin-bottom: 0;
+}
+
+.folder-grid .app-name {
+    color: #333;
+    text-shadow: none;
+}
+
+.close-btn {
+    margin-top: auto;
+    background: none;
+    border: none;
+    color: #007aff;
+}
+
+@media (max-width: 600px) {
+    .settings-content {
+        width: 90%;
+        max-width: none;
+        padding: 20px;
+    }
+    
+    .toolbar {
+        /* When small, maybe fade out or minimize? 
+           User says "Setting or Edit is not done" in small mode
+           But keeping it accessible is safer. Just smaller. 
+        */
+        transform: scale(0.8);
+        transform-origin: bottom right;
+        right: 10px;
+        bottom: 10px;
+    }
+    
+    .ios-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+/* Very small window mode - prioritize launch */
+@media (max-width: 400px) {
+    .search-bar-container {
+        /* Auto hide search if very small? Or let user toggle provided setting */
+         margin-bottom: 10px;
+    }
+    
+    .toolbar {
+        /* Hide text on very small windows? */
+        flex-direction: column;
+    }
+    
+    .container {
+        padding: 10px 10px;
+    }
+}
+
+
+/* =========================================
+   Menu Button Style: Compact Top-Right
+   ========================================= */
+
+body.menu-style-compact .toolbar {
+    top: 15px;      /* "Not completely sticking" - margin from top */
+    right: 15px;    /* "Not completely sticking" - margin from right */
+    bottom: auto;   /* Override default bottom */
+    
+    flex-direction: column; /* Stack downwards */
+    align-items: flex-end;  /* Align everything to the right */
+    
+    /* Override One Row Mode if necessary, or let One Row Mode win? 
+       Usually explicit settings override layout modes. */
+    transform: none; /* Reset center transform if any */
+}
+
+/* Adjust Button Size (Half Diameter) */
+body.menu-style-compact .toggle-btn {
+    width: 20px;
+    height: 20px;
+    min-width: 0; /* Reset generic button styles if any */
+    padding: 0;
+    
+    /* Adjust hover effect for smaller target */
+    /* Maintain hit area logic if possible, or user accepts small target */
+}
+
+/* Scale down the inner icon to fit */
+body.menu-style-compact .toggle-icon {
+    transform: scale(0.5);  
+}
+
+/* Menu Content Positioning */
+body.menu-style-compact .toolbar-buttons {
+    margin-bottom: 0;
+    margin-top: 8px; /* Gap below the small button */
+    
+    /* Animation origin from top right */
+    transform-origin: top right;
+    transform: scale(0.9) translateY(-10px);
+}
+
+/* Open State overrides */
+body.menu-style-compact .toolbar.open .toolbar-buttons {
+    transform: scale(1) translateY(0);
+}
+
+/* Ensure One Row Mode doesn't break this if they conflict 
+   If user selects this style, we probably want to enforce it.
+   But One Row Mode puts it vertically centered.
+   Let's ensure specificty. */
+   
+.one-row-mode.menu-style-compact .toolbar {
+    top: 15px;
+    right: 15px; 
+    transform: none; /* Disable vertical centering */
+    bottom: auto; 
+}
+/* Revert button flow direction for One Row Mode if it changes it?
+   One row mode makes .toolbar-buttons absolute to the left.
+   We need to disable the One Row Mode specific toolbar overrides if this style is active.
+*/
+.one-row-mode.menu-style-compact .toolbar-buttons {
+    position: static; /* Go back to normal flow */
+    transform: scale(0.9) translateY(-10px);
+    right: auto;
+    flex-direction: column; /* Keep vertical stack */
+    margin-right: 0;
+}
+.one-row-mode.menu-style-compact .toolbar.open .toolbar-buttons {
+    transform: scale(1) translateY(0);
+}
+
+/* FIX SPECIFICITY FOR COMPACT MENU */
+
+/* Strong specificity to override One Row Mode and others */
+body.menu-style-compact .toolbar {
+    top: 15px !important;
+    right: 15px !important;
+    bottom: auto !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    transform: none !important;
+    left: auto !important; /* clear any left positioning */
+    position: fixed !important;
+}
+
+/* Handle Button Size */
+body.menu-style-compact .toggle-btn {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+}
+
+body.menu-style-compact .toggle-icon {
+    transform: scale(0.5) !important;
+}
+
+/* Handle Toolbar Buttons Container */
+body.menu-style-compact .toolbar-buttons {
+    margin-bottom: 0 !important;
+    margin-top: 8px !important;
+    margin-right: 0 !important;
+    position: static !important; /* Ensure it flows in column */
+    
+    /* Animation Initial State */
+    transform-origin: top right !important;
+    transform: scale(0.9) translateY(-10px); /* No !important on transform to allow animation override ideally? */
+    /* If I use !important here, I must use !important in the open state too. */
+}
+
+/* We need !important to override .one-row-mode .toolbar-buttons which might be using specific transforms */
+body.menu-style-compact .toolbar-buttons {
+     transform: scale(0.9) translateY(-10px) !important;
+}
+
+/* Open State - Must come AFTER and be !important */
+body.menu-style-compact .toolbar.open .toolbar-buttons {
+    transform: scale(1) translateY(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Revert flex-direction logic if One Row Mode messes with it */
+body.menu-style-compact.one-row-mode .toolbar {
+    flex-direction: column !important;
+}
+
+/* =========================================
+   Spacer & Drag Drop Styles (Merged)
+   ========================================= */
+
+/* Spacer Styles */
+.app-item.type-spacer {
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: auto; 
+    border: none;
+    cursor: default;
+}
+
+/* Spacer in Edit Mode */
+.edit-mode .app-item.type-spacer {
+    opacity: 0.6;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 14px;
+    background: rgba(0,0,0,0.1);
+}
+
+.edit-mode .app-item.type-spacer .app-icon {
+    display: none;
+}
+
+.edit-mode .app-item.type-spacer .app-name {
+    display: block;
+    color: rgba(255,255,255,0.5);
+    pointer-events: none;
+}
+
+/* Empty Slot Styling for Drag Targets */
+.app-item.empty-slot {
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 12px;
+    position: relative;
+    pointer-events: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.is-dragging .app-item.empty-slot {
+    pointer-events: auto;
+}
+
+.app-item.empty-slot.drag-over {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+}
+
+/* Drop Indicators */
+.drop-indicator-left, .drop-indicator-right {
+    position: absolute;
+    top: 5px; bottom: 5px; width: 4px;
+    background: #007aff;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 10;
+}
+.drop-indicator-left { left: -15px; }
+.drop-indicator-right { right: -15px; }
+
+/* Insert Indicators */
+.app-item.insert-left::before {
+    content: '';
+    position: absolute;
+    top: 5px; bottom: 5px; left: -15px;
+    width: 4px;
+    background: #007aff;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(0,122,255,0.5);
+    z-index: 100;
+}
+
+.app-item.insert-right::after {
+    content: '';
+    position: absolute;
+    top: 5px; bottom: 5px; right: -15px;
+    width: 4px;
+    background: #007aff;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(0,122,255,0.5);
+    z-index: 100;
+}
+
+.app-item.scale-down {
+    transform: scale(0.9);
+}
+
+.app-item.folder-target {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 18px;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+/* Custom Context Menu */
+.ui-context-menu {
+    position: fixed;
+    z-index: 10000;
+    width: max-content;
+    min-width: auto;
+    background: rgba(250, 250, 250, 0.9);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    
+    --target-scale: 1;
+    transform: scale(calc(var(--target-scale) * 0.8));
+    transform-origin: top left;
+}
+
+.ui-context-menu.visible {
+    opacity: 1;
+    transform: scale(var(--target-scale));
+    pointer-events: auto;
+}
+
+.ctx-menu-item {
+    padding: 5px 10px; /* パディングを縮小 */
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px; /* フォントサイズを縮小 */
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.1s;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.ctx-menu-item:hover {
+    background: #007aff;
+    color: white;
+}
+
+.ctx-menu-item svg {
+    width: 16px; 
+    height: 16px;
+    opacity: 0.7;
+    transition: opacity 0.1s;
+}
+.ctx-menu-item:hover svg {
+    color: white;
+    opacity: 1;
+}
+
+/* =========================================
+   Settings Window Specific Styles
+   ========================================= */
+
+/* Override body defaults for Settings Window */
+body.settings-window {
+    /* Use user specified default background image for settings window */
+    background: url('assets/images/settings-bg-default.png') no-repeat center center fixed;
+    background-size: cover;
+    /* Fallback color */
+    background-color: #f5f5f7;
+    
+    color: #1c1c1e;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 100vh;
+    padding: 0; /* Removing padding from body to allow header to stick to edges */
+    margin: 0;
+    -webkit-app-region: drag; /* Header drag area handled globally */
+}
+
+/* Reset generic container logic for settings window */
+body.settings-window .container {
+    display: none;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Space items to edges */
+    
+    /* Sticky Positioning */
+    position: sticky;
+    top: 0;
+    z-index: 500;
+    
+    /* Modern Glass Effect */
+    background: rgba(255, 255, 255, 0.85); /* Slightly more opaque for better legibility */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+    
+    /* Animation for "Nurutto" appearance */
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+/* Hidden state for scroll down behavior */
+.settings-header.nav-up {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.settings-header h2 {
+    margin: 0;
+    font-size: 24px; /* Larger, bolder iOS style title */
+    font-weight: 700;
+    color: #1c1c1e;
+    
+    /* TITLE LEFT ALIGNMENT */
+    text-align: left; 
+    flex-grow: 1;
+}
+
+/* iOS Style Circle Close Button */
+.settings-close-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px; /* Prevent shrink */
+    border-radius: 50%;
+    /* Subtle background for button feel */
+    background-color: rgba(120, 120, 128, 0.1);
+    color: rgba(60, 60, 67, 0.6);
+    
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25,1,0.5,1);
+    -webkit-app-region: no-drag;
+}
+.settings-close-btn:hover {
+    background-color: rgba(120, 120, 128, 0.2);
+    color: #1c1c1e;
+    transform: scale(1.05);
+}
+.settings-close-btn:active {
+    transform: scale(0.95);
+}
+.settings-close-btn svg {
+    /* Ensure svg inherits color */
+    display: block;
+}
+
+
+/* Ensure padding for content since body padding is gone */
+.settings-section {
+    margin-bottom: 24px;
+    padding: 0 20px; /* Add horizontal padding here */
+    -webkit-app-region: no-drag;
+}
+
+.settings-section-header {
+    text-transform: uppercase;
+    font-size: 13px;
+    /* Darker gray for better visibility */
+    color: #444444;
+    margin-bottom: 8px;
+    padding-left: 16px;
+    font-weight: 600; /* Slightly bolder for readability */
+}
+
+.settings-group {
+    background-color: rgba(255, 255, 255, 0.85); /* Slightly transparent */
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    /* Use transparent divider logic or solid color */
+    background-color: transparent; 
+    border-bottom: 1px solid rgba(60, 60, 67, 0.15); /* Separator */
+    min-height: 50px; /* Slightly taller for better touch target */
+}
+
+.settings-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    /* Fix: Ensure control doesn't overflow or break layout */
+    max-width: 50%;
+    justify-content: flex-end;
+}
+
+/* Background Settings Styles */
+.bg-preview-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 20px 0;
+}
+.bg-preview {
+    width: 240px;
+    height: 135px; /* 16:9 approx */
+    background-color: #eee;
+    background-size: cover;
+    background-position: center;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.bg-grid-container {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 2px 2px 15px 2px;
+    margin-bottom: 10px;
+    -webkit-overflow-scrolling: touch;
+}
+.bg-grid-container::-webkit-scrollbar {
+    height: 6px;
+}
+.bg-grid-container::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+
+.bg-option {
+    width: 80px;
+    height: 50px;
+    border-radius: 6px;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    border: 2px solid transparent; /* Selection border placeholder */
+    flex-shrink: 0;
+    transition: transform 0.1s, border-color 0.2s;
+    background-color: #ddd;
+}
+.bg-option:hover {
+    transform: scale(1.05);
+}
+.bg-option.active {
+    border-color: #007aff;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
+}
+
+/* Fix UI layout issues */
+.settings-row.vertical {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+.settings-row.vertical .settings-control {
+    width: 100%;
+    max-width: none;
+    justify-content: space-between;
+}
+
+.settings-input-text, .settings-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(118, 118, 128, 0.12);
+    font-size: 14px;
+    outline: none;
+    min-width: 80px;
+    text-align: right;
+    color: #1c1c1e;
+    transition: all 0.2s;
+}
+
+/* Enhanced Select Styling */
+.settings-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 35px;
+    text-align: center; /* Center the selected text */
+    text-align-last: center; /* Force centering for options in some browsers */
+    cursor: pointer;
+}
+.settings-select:hover {
+    background-color: rgba(118, 118, 128, 0.18);
+}
+
+/* Center options inside dropdown (Browser dependent support) */
+.settings-select option {
+    text-align: center;
+}
+
+/* Enhanced iOS Toggle Switch */
+.ios-toggle {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 50px;
+    height: 30px;
+    position: relative;
+    border-radius: 15px;
+    background-color: rgba(120, 120, 128, 0.16); /* Improved off state color */
+    cursor: pointer;
+    transition: background-color 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    outline: none;
+}
+
+.ios-toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05); /* Richer shadow */
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy spring effect */
+}
+
+/* Active State */
+.ios-toggle:checked {
+    background-color: #34c759; /* iOS Green */
+}
+
+.ios-toggle:checked::after {
+    transform: translateX(20px);
+}
+
+/* Hover effect on toggle */
+.ios-toggle:hover::after {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+/* Improved Number Inputs for Padding */
+.small-number-input {
+    width: 60px; /* Reduced fixed width */
+    min-width: 0;
+    text-align: center;
+    font-weight: 500;
+}
+.small-number-input:focus {
+    background-color: white;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
+}
+
+/* Settings Sub-label Group for compact inputs */
+.settings-sublabel-group {
+    display: flex;
+    align-items: center; 
+    gap: 8px;
+    background: rgba(118, 118, 128, 0.06);
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+.settings-sublabel-group span {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+}
+
+.settings-actions-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 500;
+    
+    padding: 16px 24px;
+    /* Glass footer background */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid rgba(0,0,0,0.05); /* Softer border */
+    
+    display: flex;
+    justify-content: space-between; /* Spaced out */
+    align-items: center;
+    gap: 15px;
+    -webkit-app-region: no-drag;
+}
+
+/* iOS Style Action Buttons - Enhanced */
+.settings-btn {
+    border: none;
+    padding: 0 24px;
+    height: 50px; /* Taller for modern feel */
+    border-radius: 14px; /* More rounded squircle-ish */
+    font-size: 16px;
+    font-weight: 600; /* Bolder text */
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    flex: 1; /* Stretch buttons */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: -0.01em;
+}
+
+.settings-btn:active {
+    transform: scale(0.97);
+}
+
+/* Done Button: Premium Blue Gradient Look */
+.settings-btn.primary {
+    /* Gradient for subtle depth */
+    background: linear-gradient(180deg, #007aff 0%, #0062cc 100%);
+    color: white;
+    /* Soft shadow to lift it off the glass footer */
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.settings-btn.primary:hover {
+    filter: brightness(1.05);
+    box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+    transform: translateY(-1px);
+}
+.settings-btn.primary:active {
+    filter: brightness(0.95);
+}
+
+/* Reset Button: Clean Secondary Style */
+.settings-btn.destructive {
+    background-color: rgba(118, 118, 128, 0.08); /* Light gray pill background */
+    color: #ff3b30;
+    /* No shadow for secondary */
+}
+.settings-btn.destructive:hover {
+    background-color: rgba(255, 59, 48, 0.1);
+    color: #d70015; /* Darker red */
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+footer {
+    margin-top: 40px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 0.85em;
+    color: #888;
+}
+
+footer a {
+    color: #888;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+    color: #555;
+}
+
+/* About Section (Gray Box) - Consolidated & Compact */
+.about-section {
+    background-color: rgba(60, 60, 67, 0.12);
+    color: #333333;
+    border-radius: 10px;
+
+    /* Width & Alignment */
+    width: fit-content;
+    min-width: 200px;
+    
+    /* 下マージンを調整 (100px -> 20px) 画面最下部での余白は確保しつつ広すぎないように */
+    margin: 30px auto 20px auto; 
+    
+    /* 内部の余白を小さくして縦幅を抑える */
+    padding: 6px 32px !important;
+    
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.about-title {
+    font-weight: 600;
+    margin-bottom: 0px; 
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.about-copyright {
+    color: #666;
+    margin-bottom: 2px;
+    opacity: 0.7;
+    font-size: 11px;
+}
+
+.about-links a {
+    color: #007aff;
+    text-decoration: none;
+    font-weight: 400;
+}
+
+.about-links a:hover {
+    text-decoration: none;
+    color: #0056b3;
+    border-bottom: 1px solid #0056b3;
+}
+
+/* 重複していた不要なスタイル定義は削除しました */

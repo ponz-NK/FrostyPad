@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Inline styles removed in favor of style.css -->
+</head>
+<body class="settings-window">
+
+    <!-- Header: Smart Sticky (JS controlled) -->
+    <div id="settings-header" class="settings-header">
+        <!-- Title Left Aligned -->
+        <div class="settings-title-wrapper">
+            <h2>Settings</h2>
+        </div>
+        
+        <!-- Close Button Right Aligned -->
+        <button id="win-close" class="settings-close-btn" title="Close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+
+    <!-- PRIORITY HIGH: Appearance & Theme -->
+    <div class="settings-section">
+        <div class="settings-section-header">外観 (Appearance)</div>
+        <div class="settings-group">
+            <div class="settings-label" style="padding: 15px 16px 5px 16px;">Background Settings</div>
+            
+            <!-- Context aware preview -->
+            <div class="bg-preview-container">
+                <div id="bg-preview" class="bg-preview"></div>
+            </div>
+
+            <!-- List of available backgrounds -->
+            <div style="padding: 0 16px;">
+                <div class="settings-subtext" style="margin-bottom: 5px;">Presets</div>
+                <div id="bg-grid" class="bg-grid-container">
+                    <!-- JS will populate -->
+                </div>
+            </div>
+
+            <!-- Wallpaper URL Input -->
+            <div class="settings-row vertical" style="border-top: 1px solid rgba(0,0,0,0.05);">
+                <div class="settings-label">Custom Path / URL</div>
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    <input type="text" id="bg-url" class="settings-input-text" placeholder="https://... or C:\..." style="flex-grow: 1; text-align: left;">
+                    <button id="bg-browse-btn" class="ios-btn" style="width: auto; padding: 6px 12px;">Browse</button>
+                </div>
+            </div>
+            
+            <div class="settings-row">
+                <div class="settings-label">Background Position</div>
+                <select id="bg-position" class="settings-select">
+                    <option value="center center">Center</option>
+                    <option value="top center">Top</option>
+                    <option value="bottom center">Bottom</option>
+                    <option value="center left">Left</option>
+                    <option value="center right">Right</option>
+                </select>
+            </div>
+
+            <!-- UI Elements Visibility -->
+             <div class="settings-row">
+                <div class="settings-label">Show Search Bar</div>
+                <input type="checkbox" id="show-search" class="ios-toggle">
+            </div>
+
+            <!-- Text Style -->
+             <div class="settings-row">
+                <div class="settings-label">Desktop Text Style</div>
+                <div class="settings-control">
+                     <span style="font-size: 12px;">Color</span>
+                     <input type="color" id="desktop-name-color" style="border: none; background: none; height: 30px; width: 30px; padding: 0;">
+                     <span style="font-size: 12px; margin-left: 10px;">Bold</span>
+                     <input type="checkbox" id="desktop-name-bold" class="ios-toggle" style="transform: scale(0.8);"> <!-- Mini toggle -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRIORITY MEDIUM: Grid & Layout -->
+    <div class="settings-section">
+        <div class="settings-section-header">レイアウト (Grid & Layout)</div>
+        <div class="settings-group">
+            <div class="settings-row">
+                <div class="settings-label">One Row Mode</div>
+                <input type="checkbox" id="one-row-mode" class="ios-toggle">
+            </div>
+            
+            <div class="settings-row">
+                <div class="settings-label">Invert Scroll Direction
+                    <div class="settings-subtext">For horizontal scroll mode</div>
+                </div>
+                <input type="checkbox" id="invert-scroll" class="ios-toggle">
+            </div>
+
+            <!-- Icon Size -->
+            <div class="settings-row vertical">
+                <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 5px;">
+                    <span class="settings-label">Icon Size</span>
+                    <span id="icon-size-value" style="color: #8e8e93;">60px</span>
+                </div>
+                <!-- Prevent drag on range input wrapper to ensure sliding works -->
+                <div style="-webkit-app-region: no-drag; width: 100%;">
+                    <input type="range" id="icon-size-range" min="30" max="150" value="60">
+                </div>
+            </div>
+
+            <!-- App Gap -->
+            <div class="settings-row vertical">
+                 <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 5px;">
+                    <span class="settings-label">App Spacing (Gap)</span>
+                    <span id="app-gap-value" style="color: #8e8e93;">30px</span>
+                </div>
+                 <div style="-webkit-app-region: no-drag; width: 100%;">
+                    <input type="range" id="app-gap-range" min="0" max="100" value="30">
+                </div>
+            </div>
+
+             <!-- Folder Gap -->
+            <div class="settings-row vertical">
+                 <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 5px;">
+                    <span class="settings-label">Folder Inner Spacing</span>
+                    <span id="folder-gap-value" style="color: #8e8e93;">20px</span>
+                </div>
+                 <div style="-webkit-app-region: no-drag; width: 100%;">
+                    <input type="range" id="folder-gap-range" min="0" max="100" value="20">
+                </div>
+            </div>
+
+            <div class="settings-row">
+                <div class="settings-label">Startup Position</div>
+                <select id="startup-position" class="settings-select">
+                    <option value="center">Center</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="top-left">Top Left</option>
+                    <option value="top-right">Top Right</option>
+                </select>
+            </div>
+            
+            <div class="settings-row">
+                <div class="settings-label">Compact Menu</div>
+                <input type="checkbox" id="compact-menu" class="ios-toggle">
+            </div>
+        </div>
+    </div>
+
+    <!-- PRIORITY LOW: System & Detailed Settings -->
+    <div class="settings-section">
+        <div class="settings-section-header">詳細設定 (System & Advanced)</div>
+        <div class="settings-group">
+            <div class="settings-row">
+                <div class="settings-label">Show App Labels (Desktop)</div>
+                <input type="checkbox" id="show-desktop-names" class="ios-toggle">
+            </div>
+            
+            <div class="settings-row">
+                <div class="settings-label">Show App Labels (Folder)</div>
+                <input type="checkbox" id="show-folder-content-names" class="ios-toggle">
+            </div>
+
+            <div class="settings-row">
+                <div class="settings-label">Show Scroll Bar</div>
+                <input type="checkbox" id="show-scroll" class="ios-toggle">
+            </div>
+
+            <div class="settings-row">
+                <div class="settings-label">Allow Rename (Folders)</div>
+                <input type="checkbox" id="enable-folder-rename" class="ios-toggle">
+            </div>
+             <div class="settings-row">
+                <div class="settings-label">Allow Rename (Apps/Files)</div>
+                <input type="checkbox" id="enable-app-rename" class="ios-toggle">
+            </div>
+
+            <div class="settings-row vertical">
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                    <span class="settings-label">Custom Window Padding</span>
+                    <input type="checkbox" id="custom-padding-check" class="ios-toggle">
+                </div>
+                <div id="padding-input-group" style="display: none; width: 100%; margin-top: 10px;">
+                    <!-- Improved Layout used Flex box centering -->
+                    <div style="display: flex; gap: 20px; width: 100%; justify-content: flex-end;">
+                        <div class="settings-sublabel-group">
+                            <span>V:</span>
+                            <input type="number" id="window-padding-input" class="settings-input-text small-number-input">
+                            <span>px</span>
+                        </div>
+                        <div class="settings-sublabel-group">
+                            <span>H:</span>
+                            <input type="number" id="window-padding-h-input" class="settings-input-text small-number-input">
+                            <span>px</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-row">
+                <div class="settings-label">Lock Window Size</div>
+                <input type="checkbox" id="lock-window" class="ios-toggle">
+            </div>
+
+            <div class="settings-row">
+                <div class="settings-label">Window Dimensions</div>
+                <div class="settings-control">
+                     <input type="number" id="win-width" class="settings-input-text" placeholder="W" style="width: 80px;">
+                     <span style="color: #aaa;">×</span>
+                     <input type="number" id="win-height" class="settings-input-text" placeholder="H" style="width: 80px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Section (Gray Box Style) -->
+    <div class="about-section">
+        <div class="about-title">FrostyPad <span id="app-version">v1.0.0</span></div>
+        <div class="about-copyright">&copy; 2024 ponz-NK</div>
+        <div class="about-links">
+            <a id="license-link" href="#">License</a>
+        </div>
+    </div>
+
+    <!-- Actions Footer - Sticky Bottom -->
+    <div class="settings-actions-footer">
+        <button id="reset-settings" class="settings-btn destructive">Reset to Defaults</button>
+        <button id="save-settings" class="settings-btn primary">Done</button>
+    </div>
+
+    <script src="settings_renderer.js"></script>
+</body>
+</html>

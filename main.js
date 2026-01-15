@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, ipcMain, dialog, screen } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, dialog, screen, Menu, MenuItem } = require('electron');
 const path = require('path');
 const fs = require('fs').promises; // Use promises for easier async/await
 const fsSync = require('fs'); // Sync fs for close event
@@ -6,37 +6,97 @@ const fsSync = require('fs'); // Sync fs for close event
 let mainWindow;
 let settingsWindow; // Track settings window
 
+// DEFAULT CONSTANTS
+const DEFAULT_SETTINGS = {
+    windowWidth: 650,
+    windowHeight: 135,
+    iconSize: 80,
+    appGap: 5,
+    folderGap: 5,
+    customWindowPadding: true,
+    windowPaddingSize: 5,
+    windowPaddingSizeH: 5,
+    oneRowMode: true,
+    showDesktopNames: true,
+    showFolderContentNames: true,
+    invertScrollDirection: false,
+    startupPosition: 'bottom-left',
+    backgroundPosition: 'center center',
+    backgroundImage: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=3270&auto=format&fit=crop",
+    enableFolderRename: true,
+    enableAppRename: false,
+    desktopNameColor: '#ffffff',
+    desktopNameBold: false,
+    showSearch: false,
+    showScroll: false,
+    windowLocked: false,
+    compactMenu: true
+};
+
+const DEFAULT_APPS = [
+    {
+        "id": 1,
+        "name": "Explorer",
+        "type": "app",
+        "path": "C:\\Windows\\explorer.exe",
+        "color": "#0078D7"
+    },
+    {
+        "id": 2,
+        "name": "Edge",
+        "type": "app",
+        "path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+        "color": "#0078D7"
+    },
+    {
+        "id": 3,
+        "name": "Tools",
+        "type": "folder",
+        "content": [
+            {
+                "id": 31,
+                "name": "Notepad",
+                "type": "app",
+                "path": "C:\\Windows\\System32\\notepad.exe",
+                "color": "#333"
+            },
+            {
+                "id": 32,
+                "name": "Calculator",
+                "type": "app",
+                "path": "C:\\Windows\\System32\\calc.exe",
+                "color": "#333"
+            }
+        ]
+    }
+];
+
+async function ensureDataFiles() {
+    const settingsPath = path.join(__dirname, '../settings.json');
+    const appsPath = path.join(__dirname, '../apps.json');
+
+    try {
+        await fs.access(settingsPath);
+    } catch {
+        console.log('settings.json not found. Creating default...');
+        await fs.writeFile(settingsPath, JSON.stringify(DEFAULT_SETTINGS, null, 4), 'utf8');
+    }
+
+    try {
+        await fs.access(appsPath);
+    } catch {
+        console.log('apps.json not found. Creating default...');
+        await fs.writeFile(appsPath, JSON.stringify(DEFAULT_APPS, null, 4), 'utf8');
+    }
+}
+
 async function loadSettings() {
     try {
-        const settingsPath = path.join(__dirname, 'settings.json');
+        const settingsPath = path.join(__dirname, '../settings.json');
         const data = await fs.readFile(settingsPath, 'utf8');
         return JSON.parse(data);
     } catch (e) {
-        // Default settings
-        return {
-            windowWidth: 650,
-            windowHeight: 135,
-            iconSize: 80,
-            appGap: 5,
-            folderGap: 5,
-            customWindowPadding: true,
-            windowPaddingSize: 5,
-            windowPaddingSizeH: 5,
-            oneRowMode: true,
-            // Renamed/Repurposed settings
-            showDesktopNames: true,       // Formerly showFolderNames (Desktop items)
-            showFolderContentNames: true, // Formerly showAppNames (Inner items)
-            invertScrollDirection: false, // New
-            startupPosition: 'center', // New
-            backgroundPosition: 'center center',
-            backgroundImage: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=3270&auto=format&fit=crop",
-            // Rename Permissions
-            enableFolderRename: true,
-            enableAppRename: false,
-            // Style Settings
-            desktopNameColor: '#ffffff',
-            desktopNameBold: false
-        };
+        return DEFAULT_SETTINGS;
     }
 }
 
@@ -123,14 +183,15 @@ async function createWindow() {
         autoHideMenuBar: true
     });
 
-    win.loadFile('index.html');
+    // Modified to load from src/index.html
+    win.loadFile(path.join(__dirname, 'index.html'));
     mainWindow = win;
 
     // Save window size on close
     win.on('close', () => {
         try {
             const bounds = win.getBounds();
-            const settingsPath = path.join(__dirname, 'settings.json');
+            const settingsPath = path.join(__dirname, '../settings.json');
             
             let currentSettings = {};
             if (fsSync.existsSync(settingsPath)) {
@@ -177,7 +238,21 @@ ipcMain.handle('launch-app', async (event, appPath) => {
 // Get Icon
 ipcMain.handle('get-icon', async (event, appPath) => {
     try {
-        const icon = await app.getFileIcon(appPath);
+        let targetPath = appPath;
+        // ショートカット(.lnk)の場合はリンク先を解決して本体のアイコンを取得する
+        if (typeof appPath === 'string' && appPath.toLowerCase().endsWith('.lnk')) {
+            try {
+                const details = shell.readShortcutLink(appPath);
+                if (details.target) {
+                    targetPath = details.target;
+                }
+            } catch (err) {
+                // リンク解決に失敗した場合は元のパスを使用
+                console.warn(`Failed to resolve shortcut ${appPath}:`, err);
+            }
+        }
+
+        const icon = await app.getFileIcon(targetPath, { size: 'large' });
         return icon.toDataURL();
     } catch (e) {
         return null; // Return null if failed, render will use default
@@ -187,7 +262,7 @@ ipcMain.handle('get-icon', async (event, appPath) => {
 // Load Config
 ipcMain.handle('load-config', async () => {
     try {
-        const configPath = path.join(__dirname, 'apps.json');
+        const configPath = path.join(__dirname, '../apps.json');
         const data = await fs.readFile(configPath, 'utf8');
         return JSON.parse(data);
     } catch (error) {
@@ -199,7 +274,7 @@ ipcMain.handle('load-config', async () => {
 // Save Config
 ipcMain.handle('save-config', async (event, apps) => {
     try {
-        const configPath = path.join(__dirname, 'apps.json');
+        const configPath = path.join(__dirname, '../apps.json');
         await fs.writeFile(configPath, JSON.stringify(apps, null, 4), 'utf8');
         return true;
     } catch (error) {
@@ -210,7 +285,24 @@ ipcMain.handle('save-config', async (event, apps) => {
 
 // Load Settings
 ipcMain.handle('load-settings', async () => {
-    return await loadSettings();
+    const settings = await loadSettings();
+    // Inject available background images from assets folder
+    try {
+        // Adjusted path to src/assets/images
+        const imagesDir = path.join(__dirname, 'assets', 'images');
+        // Check if directory exists
+        const files = await fs.readdir(imagesDir).catch(() => []);
+        
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+        
+        settings._availableImages = files
+            .filter(file => imageExtensions.includes(path.extname(file).toLowerCase()))
+            .map(file => `assets/images/${file}`); // Return relative paths for renderer (relative to src/)
+    } catch (e) {
+        // Ignore errors, just return empty list
+        settings._availableImages = [];
+    }
+    return settings;
 });
 
 // Open Settings Window
@@ -268,7 +360,8 @@ ipcMain.on('open-settings', async () => {
         // parent: mainWindow, // Removed to allow independent positioning
     });
 
-    settingsWindow.loadFile('settings.html');
+    // Modified to load from src/settings.html
+    settingsWindow.loadFile(path.join(__dirname, 'settings.html'));
 
     settingsWindow.on('closed', () => {
         settingsWindow = null;
@@ -362,7 +455,38 @@ ipcMain.on('window-close', (event) => {
     if (win) win.close();
 });
 
-app.whenReady().then(() => {
+// Context Menu Logic
+ipcMain.on('show-context-menu', (event, { context, index, parentIndex }) => {
+    const template = [
+        {
+            label: 'Change Icon',
+            click: async () => {
+                const result = await dialog.showOpenDialog(mainWindow, {
+                    properties: ['openFile'],
+                    filters: [
+                        // Displayable image formats only
+                        { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'] }
+                    ]
+                });
+
+                if (!result.canceled && result.filePaths.length > 0) {
+                    // Send back the selected image path and the target identifiers
+                    event.sender.send('app-icon-updated', {
+                        context,
+                        index,
+                        parentIndex,
+                        iconPath: result.filePaths[0]
+                    });
+                }
+            }
+        }
+    ];
+    const menu = Menu.buildFromTemplate(template);
+    menu.popup({ window: BrowserWindow.fromWebContents(event.sender) });
+});
+
+app.whenReady().then(async () => {
+    await ensureDataFiles();
     createWindow();
 
     app.on('activate', () => {

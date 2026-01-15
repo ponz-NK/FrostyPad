@@ -1,21 +1,31 @@
-MIT License
+Copyright (c) 2026 ponz-NK
 
-Copyright (c) 2026 ponz
+### English Version
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This software and its source code are proprietary. 
+Permission is hereby granted to any person obtaining a copy of this software and associated documentation files from this official repository to:
+1. Use the software for personal, non-commercial purposes only.
+2. Modify the source code for personal, non-commercial use only.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+However, the following actions are strictly prohibited:
+- Redistribution of the original or modified software, in whole or in part, in any form.
+- Commercial use of the software, including but not limited to selling or using it for business purposes.
+- Hosting the software or its modified versions on other public platforms for public download.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY.
+
+---
+
+### 日本語訳（参考）
+
+本ソフトウェアおよびそのソースコードに関する著作権は ponz-NK に帰属します。
+本公式リポジトリから本ソフトウェアを取得した利用者に対し、以下の範囲で利用を許諾します：
+1. 個人かつ非営利目的での使用。
+2. 個人かつ非営利目的でのソースコードの改変。
+
+ただし、以下の行為は固く禁じます：
+- 本ソフトウェア（オリジナルおよび改変版）の全部または一部を、いかなる形態でも再配布すること。
+- 本ソフトウェアの商用利用（販売、業務での利用などを含むがこれらに限定されない）。
+- 他の公開プラットフォームへ本ソフトウェアや改変版をアップロードし、不特定多数がダウンロード可能にすること。
+
+本ソフトウェアは「現状のまま」提供され、作者はいかなる保証も行いません。本ソフトウェアの使用に関連して生じた損害等について、作者は一切の責任を負いません。

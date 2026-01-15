@@ -1,16 +1,45 @@
 {
-  "name": "ipad-launcher-demo",
+  "name": "frostypad",
   "version": "1.0.0",
   "description": "iPad-like folder launcher",
-  "main": "main.js",
+  "main": "src/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron src/main.js",
+    "build": "electron-builder",
+    "dist": "electron-builder",
+    "build-icon": "electron-icon-builder --input=./src/assets/icon.png --output=src/assets --flatten"
+  },
+  "build": {
+    "appId": "com.frostypad.app",
+    "productName": "FrostyPad",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "src/assets/icons/win/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "mac": {
+      "icon": "src/assets/icons/mac/icon.icns",
+      "target": "dmg"
+    },
+    "linux": {
+      "icon": "src/assets/icons/png",
+      "target": "AppImage"
+    }
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "SEE LICENSE IN LICENSE",
   "devDependencies": {
     "electron": "^34.0.0",
+    "electron-builder": "^24.13.3",
+    "electron-icon-builder": "^2.0.1"
+  },
+  "dependencies": {
     "uuid": "^13.0.0"
   }
 }

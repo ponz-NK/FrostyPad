@@ -1,111 +1,50 @@
 [
     {
-        "id": 1768335139819,
-        "name": "SNS",
+        "id": 1,
+        "name": "Tools",
         "type": "folder",
         "content": [
             {
-                "id": 1768343253535,
-                "name": "Notion",
+                "id": 2,
+                "name": "Notepad",
                 "type": "app",
-                "path": "C:\\Users\\with1\\AppData\\Local\\Programs\\Notion\\Notion.exe",
-                "color": "#888"
+                "path": "C:\\Windows\\System32\\notepad.exe",
+                "color": "#333"
             },
             {
-                "id": 1768342634169,
-                "name": "LineLauncher",
+                "id": 3,
+                "name": "Calculator",
                 "type": "app",
-                "path": "C:\\Users\\with1\\AppData\\Local\\LINE\\bin\\LineLauncher.exe",
-                "color": "#888"
+                "path": "C:\\Windows\\System32\\calc.exe",
+                "color": "#333"
             },
             {
-                "id": 1768342589171,
-                "name": "Webex",
+                "id": 1768436633641,
+                "name": "Kindle",
                 "type": "app",
-                "path": "C:\\Users\\with1\\Desktop\\Webex.lnk",
-                "color": "#888"
-            },
-            {
-                "id": 1768342597096,
-                "name": "LINE",
-                "type": "app",
-                "path": "C:\\Users\\with1\\Desktop\\LINE.lnk",
-                "color": "#888"
-            },
-            {
-                "id": 1768349794293,
-                "name": "Notion",
-                "type": "app",
-                "path": "C:\\Users\\with1\\AppData\\Local\\Programs\\Notion\\Notion.exe",
-                "color": "#888"
-            },
-            {
-                "id": 1768354822604,
-                "name": "Notion",
-                "type": "app",
-                "path": "C:\\Users\\with1\\AppData\\Local\\Programs\\Notion\\Notion.exe",
-                "color": "#888"
-            },
-            {
-                "id": 1768358304234,
-                "name": "Notion",
-                "type": "app",
-                "path": "C:\\Users\\with1\\AppData\\Local\\Programs\\Notion\\Notion.exe",
+                "path": "C:\\Users\\with1\\Desktop\\Kindle.lnk",
                 "color": "#888"
             }
         ]
     },
     {
-        "id": 1768363896713,
-        "type": "spacer",
-        "name": "Empty"
-    },
-    {
-        "id": 1768399863815,
-        "name": "New Folder",
-        "type": "folder",
-        "content": [
-            {
-                "id": 1768399875018,
-                "name": "Duet Night Abyss",
-                "type": "app",
-                "path": "C:\\Users\\with1\\Desktop\\Duet Night Abyss.lnk",
-                "color": "#888"
-            },
-            {
-                "id": 1768399889108,
-                "name": "OverwolfLauncher",
-                "type": "app",
-                "path": "C:\\Program Files (x86)\\Overwolf\\OverwolfLauncher.exe",
-                "color": "#888"
-            },
-            {
-                "id": 1768399912771,
-                "name": "NotebookLM",
-                "type": "app",
-                "path": "C:\\Users\\with1\\Desktop\\NotebookLM.lnk",
-                "color": "#888"
-            },
-            {
-                "id": 1768399924176,
-                "name": "chrome_proxy",
-                "type": "app",
-                "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome_proxy.exe",
-                "color": "#888"
-            },
-            {
-                "id": 1768399960156,
-                "name": "NVIDIA App",
-                "type": "app",
-                "path": "C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\CEF\\NVIDIA App.exe",
-                "color": "#888"
-            }
-        ]
-    },
-    {
-        "id": 1768399864955,
+        "id": 1768436664126,
         "name": "New Folder",
         "type": "folder",
         "content": []
+    },
+    {
+        "id": 1768436664531,
+        "name": "New Folder",
+        "type": "folder",
+        "content": []
+    },
+    {
+        "id": 1768436349296,
+        "name": "arknighs",
+        "type": "app",
+        "path": "C:\\Users\\with1\\Desktop\\Notion.lnk",
+        "color": "#888",
+        "customIcon": "C:/Users/with1/Pictures/arknights_wisadelForIcon.jpg"
     }
 ]
