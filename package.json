@@ -7,6 +7,7 @@
     "start": "electron src/main.js",
     "build": "electron-builder",
     "dist": "electron-builder",
+    "pack": "electron-builder --dir",
     "build-icon": "electron-icon-builder --input=./src/assets/icon.png --output=src/assets --flatten"
   },
   "build": {
